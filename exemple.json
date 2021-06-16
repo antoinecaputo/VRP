@@ -1,0 +1,54 @@
+{
+	"lieux": {
+		"A": {
+			"type_lieu" : "livraison",
+			"début": "9:00",
+			"fin": "18:00"
+		},
+		"B": {
+			"type_lieu" : "livraison",
+			"début": "9:00",
+			"fin": "18:00"
+		},
+		"C": {
+			"type_lieu" : "dépôt",
+			"début": null,
+			"fin": null
+		}
+	},
+
+	"colis": [
+		{
+			"type_colis": "lettre",
+			"pt_livraison": "A"
+		}
+	],
+
+	"routes":[
+		{
+			"type_route": "communale",
+			"longueur":8,
+			"lieux_connectés":[
+				"A",
+				"B"
+			],
+			"info_trafic":{
+				"202101010910":23,
+				"2021010101026":12,
+			}
+		},
+
+		{
+			"type_route": "communale",
+			"longueur":7,
+			"lieux_connectés":[
+				"B",
+				"C"
+			],
+			"info_trafic":{
+				"202101010910":61,
+				"2021010101026":19,
+			}
+		}
+	]
+}
