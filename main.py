@@ -14,9 +14,9 @@ class Colis:
 
 
 class TypeColis(Enum):
-    GROS_CARTON = 1
-    PETIT_CARTON = 2
-    LETTRE = 3
+    GROS_CARTON = "gros_carton"
+    PETIT_CARTON = "petit_carton"
+    LETTRE = "lettre"
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -25,9 +25,8 @@ class TypeColis(Enum):
 # # Un point de livraison a des horaires d'ouverture et de fermeture
 class Lieu:
 
-    tb_routes = []
-
-    def __init__(self, _type_lieu, _heure_début, _heure_fin):
+    def __init__(self, _nom_lieu, _type_lieu, _heure_début, _heure_fin):
+        self.nom_lieu = str(_nom_lieu)
         self.type_lieu = _type_lieu
         self.heure_début = _heure_début
         self.heure_fin = _heure_fin
@@ -59,22 +58,22 @@ class TypeVéhicule(Enum):
 # Une route à un type et une longueur
 # Elle contient également ses informations de circulation
 class Route:
-    tb_lieux_connectés = [None] * 2
+    # tb_lieux_connectés = [None] * 2
 
     tba_info_trafic = {}
 
-    def __init__(self, _type_route, _longueur, _lieu1, _lieu2):
+    def __init__(self, _type_route, _longueur):
         self.type_route = _type_route
         self.longueur = _longueur
-        self.tb_lieux_connectés[0] = _lieu1
-        self.tb_lieux_connectés[1] = _lieu2
+        # self.tb_lieux_connectés[0] = _lieu1
+        # self.tb_lieux_connectés[1] = _lieu2
 
 
 class TypeRoute(Enum):
-    AUTOROUTE = 1  # 130
-    NATIONALE = 2  # 80
-    DEPARTEMENTALE = 3  # 80
-    COMMUNALE = 4  # 50
+    AUTOROUTE = "AUTOROUTE"  # 130
+    NATIONALE = "NATIONALE"  # 80
+    DEPARTEMENTALE = "DEPARTEMENTALE"  # 80
+    COMMUNALE = "COMMUNALE"  # 50
 
 
 """
@@ -84,20 +83,159 @@ class InfoTrafic:
         self.nb_véhciules = _nb_véhicules
 
 """
+
+
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+def fctTrafic(_nb_jours, _nb_périodes):
+    tb_info_trafic = {}
+
+    jour_actuel = 0
+
+    while (jour_actuel < _nb_jours):
+
+        plage_horaire_actuelle = 'm'
+        période_actuelle = 0
+
+        while période_actuelle < _nb_périodes:
+
+            # ■■■■■■■■■■ Véhicules ■■■■■■■■■■
+
+            nb_véhicules = 0
+
+            # trafic faible/moyen/élevé
+            niv_trafic = random.randint(1, 3)
+            if niv_trafic == 1:
+                nb_véhicules = random.randint(0, 20)
+            elif niv_trafic == 2:
+                nb_véhicules = random.randint(21, 50)
+            elif niv_trafic == 3:
+                nb_véhicules = random.randint(51, 100)
+
+            # ■■■■■■■■■■ Date ■■■■■■■■■■
+
+            heure = int((période_actuelle + 1) / 60)
+            minutes = (période_actuelle + 1) % 60
+
+            # matin
+            if plage_horaire_actuelle == 'm':
+                heure += 7
+
+            # soir
+            if plage_horaire_actuelle == 's':
+                heure += 19
+
+            date_info_trafic = datetime.datetime(2020, 1, jour_actuel + 1, heure, minutes)
+
+            # ■■■■■■■■■■ Enregistrer ■■■■■■■■■■
+
+            tb_info_trafic[date_info_trafic.strftime("%Y%m%d%H%M")] = nb_véhicules
+
+            # ■■■■■■■■■■ Période suivante ■■■■■■■■■■
+
+            période_actuelle += 1
+
+            # Passer de la plage matin à soir
+            if plage_horaire_actuelle == 'm' and période_actuelle == _nb_périodes:
+                plage_horaire_actuelle = 's'
+                période_actuelle = 0
+
+        # Passer au jour suivant
+        jour_actuel += 1
+
+    return tb_info_trafic
+
 
 def fctGénérerDonnées(_nb_lieux):
+    tb_lieux = []
 
-    tb_lieux = {}
+    tba_routes_ville = {}
 
     # Création des points de livraison
-    for i in range(97, 97+_nb_lieux):
-        lieu = Lieu(TypeLieu.LIVRAISON, 9, 18)
-        tb_lieux[chr(i)] = lieu
+    for i in range(_nb_lieux):
+        lieu = Lieu(i, TypeLieu.LIVRAISON, 9, 18)
+        tb_lieux.append(lieu)
 
+    # Un lieu aléatoire devient le dépot
+    tb_lieux[random.randint(0, len(tb_lieux) - 1)].type_lieu = TypeLieu.DEPOT
+
+    # Génération des routes
     for lieu in tb_lieux:
-        while
-fctGénérerDonnées(3)
+        print("\nTraitement d'un lieu")
 
+        # check if key exists in dictionary by checking if get() returned None
+        if tba_routes_ville.get(lieu.nom_lieu) is None:
+            tba_routes_ville[lieu.nom_lieu] = []
+
+        pourcentage = 100
+
+        while pourcentage >= 70:
+            print("Générer une route (" + str(pourcentage) + ")")
+
+            # type de route aléatoire
+            type_route = random.choice(list(TypeRoute))
+            # longueur aléatoire
+            longueur_route = random.randint(1, 10)
+
+            # voisin aléatoire, différent du lieu actuel
+            voisin = lieu
+            while voisin is lieu:
+                voisin = tb_lieux[random.randint(0, len(tb_lieux) - 1)]
+
+            # création de la route
+            route = Route(type_route, longueur_route)
+
+            # génération des données sur 1 jour, période de 120 unités de temps
+            route.tba_info_trafic = fctTrafic(1, 120)
+
+            tba_routes_ville[lieu.nom_lieu].append(route)
+
+            # check if key exists in dictionary by checking if get() returned None
+            if tba_routes_ville.get(voisin.nom_lieu) is None:
+                tba_routes_ville[voisin.nom_lieu] = []
+
+            tba_routes_ville[voisin.nom_lieu].append(route)
+
+            print("Nouvelle route de "+lieu.nom_lieu+" à "+voisin.nom_lieu)
+            pourcentage = random.randint(0, 100)
+
+    return tb_lieux, tba_routes_ville
+
+
+tb_lieux, tba_routes_lieu = fctGénérerDonnées(10)
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+import networkx as nx
+import matplotlib.pyplot as plt
+
+G = nx.Graph()
+
+# Ajout des noeuds au graphe
+for lieu in tb_lieux:
+    G.add_node(lieu.nom_lieu)
+
+# Ajout des arêtes au graphe
+for nom_lieu in tba_routes_lieu:
+
+    tb_routes = tba_routes_lieu[nom_lieu]
+    for route in tb_routes:
+
+        # comparer qui a la même route
+        for nom_lieu_voisin in tba_routes_lieu:
+            if nom_lieu is nom_lieu_voisin:
+                continue
+
+            tb_routes_voisin = tba_routes_lieu[nom_lieu_voisin]
+            for route_voisin in tb_routes_voisin:
+                if route is not route_voisin:
+                    continue
+
+                edge = (nom_lieu, nom_lieu_voisin)
+                G.add_edge(*edge)
+
+
+
+nx.draw(G)
+plt.savefig("simple_path.png") # save as png
+plt.show() # display
