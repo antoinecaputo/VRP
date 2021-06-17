@@ -1,5 +1,6 @@
 import datetime
 import random
+import json
 from enum import Enum
 
 
@@ -70,19 +71,11 @@ class Route:
 
 
 class TypeRoute(Enum):
-    AUTOROUTE = "AUTOROUTE"  # 130
-    NATIONALE = "NATIONALE"  # 80
-    DEPARTEMENTALE = "DEPARTEMENTALE"  # 80
-    COMMUNALE = "COMMUNALE"  # 50
+    AUTOROUTE = "autoroute"  # 130
+    NATIONALE = "nationale"  # 80
+    DEPARTEMENTALE = "départementale"  # 80
+    COMMUNALE = "communale"  # 50
 
-
-"""
-class InfoTrafic:
-    def __init__(self, _date, _nb_véhicules):
-        self.date = _date
-        self.nb_véhciules = _nb_véhicules
-
-"""
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
@@ -180,6 +173,8 @@ list
 dict
     Pour chaque nom de lieu, un tableau contenant la liste des routes de ce lieu
 """
+
+
 def fctGénérerPlan(_nb_lieux):
     if _nb_lieux < 2:
         raise ValueError("Le nombre de lieux doit au minimum être 2")
@@ -243,6 +238,50 @@ tb_lieux, dic_routes_lieu = fctGénérerPlan(10)
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
+"""
+    Génération du JSON
+"""
+
+
+def fctGénérerJSON():
+
+    lieux_JSON = []
+    for lieu in tb_lieux:
+        lieux_JSON.append({
+            'nom_lieu': lieu.nom_lieu,
+            'type_lieu': str(lieu.type_lieu),
+            'début': lieu.heure_début,
+            'fin': lieu.heure_fin
+        })
+
+    routes_lieu_JSON =  {}
+    for nom_lieu in dic_routes_lieu:
+        routes_lieu_JSON[nom_lieu] = []
+        for route in dic_routes_lieu[nom_lieu]:
+            routes_lieu_JSON[nom_lieu].append({
+                'type_route':str(route.type_route),
+                'longueur':route.longueur,
+                'info_trafic':route.dic_info_trafic
+            })
+
+    # colis
+    colis_JSON =  {}
+
+    # écriture
+    with open('data.txt', 'w') as outfile:
+        json.dump({
+            'lieux':lieux_JSON,
+            'routes_lieu': routes_lieu_JSON,
+            'colis': colis_JSON
+        }, outfile)
+
+fctGénérerJSON()
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+"""
+    Génération du graphe
+"""
 import networkx as nx
 import matplotlib.pyplot as plt
 
