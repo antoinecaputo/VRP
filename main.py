@@ -1,7 +1,14 @@
-import datetime
 import random
-import json
 from enum import Enum
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+import binascii
+import os
+
+
+def fctUUID():
+    return str(binascii.b2a_hex(os.urandom(12)), 'utf-8')
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -19,6 +26,10 @@ class TypeColis(Enum):
     PETIT_CARTON = "petit_carton"
     LETTRE = "lettre"
 
+def fctGénérerColis(_tb_lieux, _nb_colis):
+    return
+    # for i in range
+
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
@@ -27,6 +38,7 @@ class TypeColis(Enum):
 class Lieu:
 
     def __init__(self, _nom_lieu, _type_lieu, _heure_début, _heure_fin):
+        self.tb_id_routes = []
         self.nom_lieu = str(_nom_lieu)
         self.type_lieu = _type_lieu
         self.heure_début = _heure_début
@@ -49,25 +61,133 @@ class Véhicule:
 
 
 class TypeVéhicule(Enum):
-    CAMION = 1
-    VOITURE = 2
-    VELO = 3
+    CAMION = "camion"
+    VOITURE = "voiture"
+    MOTO = "moto"
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
+import datetime
+
+
 # Une route à un type et une longueur
 # Elle contient également ses informations de circulation
 class Route:
-    # tb_lieux_connectés = [None] * 2
-
     dic_info_trafic = {}
 
     def __init__(self, _type_route, _longueur):
+        self.id = fctUUID()
         self.type_route = _type_route
         self.longueur = _longueur
-        # self.tb_lieux_connectés[0] = _lieu1
-        # self.tb_lieux_connectés[1] = _lieu2
+
+    """
+    Génére des données de trafic d'un axe routier
+
+    Paramètres
+    ----------
+    _nb_jours : int
+        Sur combien de jours les données vont être générées
+    _nb_périodes : sound : str
+        Sur combien de période les données vont être générées
+        le matin et le soir de chaque journéee
+
+    Retours
+    ----------
+    dict
+        Le nombre de voiture pour une ANNEE-MOIS-JOURS-HEURE-MINUTES
+        dic_info_trafic[date_info_trafic.strftime("%Y%m%d%H%M")] = nb_véhicules
+    """
+
+    def fctGénérerTrafic(self, _nb_jours, _nb_périodes):
+
+        jour_actuel = 0
+
+        """
+        nb_véhicules = 0
+        if _route.type_route is TypeRoute.COMMUNALE:
+            nb_véhicules = 1
+        elif _route.type_route is TypeRoute.DEPARTEMENTALE:
+            nb_véhicules = 2
+        elif _route.type_route is TypeRoute.NATIONALE:
+            nb_véhicules = 3
+        elif _route.type_route is TypeRoute.AUTOROUTE:
+            nb_véhicules = 4
+        """
+
+        # nb_véhicules += _route.longueur
+
+        while jour_actuel < _nb_jours:
+
+            plage_horaire_actuelle = 'm'
+            période_actuelle = 0
+
+            """
+            niv_trafic = random.randint(0, nb_véhicules)
+            nb_véhicules = 0
+            if niv_trafic == 1:
+                nb_véhicules = random.randint(0, 2)
+            elif niv_trafic == 2:
+                nb_véhicules = random.randint(3, 6)
+            elif niv_trafic == 3:
+                nb_véhicules = random.randint(6, 10)
+            """
+
+            fct_trafic = random.randint(0, 1)
+
+            while période_actuelle < _nb_périodes:
+
+                # ■■■■■■■■■■ Véhicules ■■■■■■■■■■
+
+                """
+                if niv_trafic == 1:
+                    nb_véhicules = random.randint(0, 20)
+                elif niv_trafic == 2:
+                    nb_véhicules = random.randint(21, 50)
+                elif niv_trafic == 3:
+                    nb_véhicules = random.randint(51, 100)
+                """
+
+                nb_véhicules = 0
+
+                if fct_trafic == 0:
+                    # 5x − x²
+                    nb_véhicules = 5 * période_actuelle - période_actuelle ** 2
+                elif fct_trafic == 1:
+                    # f(x)=3-(2+x^(3)-2 x^(2))
+                    nb_véhicules = 3 - (2 + (période_actuelle ** 3) - 2 * période_actuelle ** 2)
+
+                # ■■■■■■■■■■ Date ■■■■■■■■■■
+
+                heure = int((période_actuelle + 1) / 60)
+                minutes = (période_actuelle + 1) % 60
+
+                # matin
+                if plage_horaire_actuelle == 'm':
+                    heure += 7
+
+                # soir
+                if plage_horaire_actuelle == 's':
+                    heure += 19
+
+                date_info_trafic = datetime.datetime(2020, 1, jour_actuel + 1, heure, minutes)
+
+                # ■■■■■■■■■■ Enregistrer ■■■■■■■■■■
+
+                self.dic_info_trafic[date_info_trafic.strftime("%Y%m%d%H%M")] = nb_véhicules
+
+                # ■■■■■■■■■■ Période suivante ■■■■■■■■■■
+
+                période_actuelle += 1
+
+                # Passer de la plage matin à soir
+                if plage_horaire_actuelle == 'm' and période_actuelle == _nb_périodes:
+                    plage_horaire_actuelle = 's'
+                    période_actuelle = 0
+                    niv_trafic = random.randint(1, 3)
+
+            # Passer au jour suivant
+            jour_actuel += 1
 
 
 class TypeRoute(Enum):
@@ -77,85 +197,15 @@ class TypeRoute(Enum):
     COMMUNALE = "communale"  # 50
 
 
+def fctChercherRouteParID(_tb_routes, _id):
+    for _route in _tb_routes:
+        if _route.id == id:
+            return _route
+
+    return None
+
+
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-"""
-Génére des données de trafic d'un axe routier
-
-Paramètres
-----------
-_nb_jours : int
-    Sur combien de jours les données vont être générées
-_nb_périodes : sound : str
-    Sur combien de période les données vont être générées
-    le matin et le soir de chaque journéee
-
-Retours
-----------
-dict
-    Le nombre de voiture pour une ANNEE-MOIS-JOURS-HEURE-MINUTES
-    dic_info_trafic[date_info_trafic.strftime("%Y%m%d%H%M")] = nb_véhicules
-"""
-
-
-def fctGénérerTrafic(_nb_jours, _nb_périodes):
-    dic_info_trafic = {}
-
-    jour_actuel = 0
-
-    while (jour_actuel < _nb_jours):
-
-        plage_horaire_actuelle = 'm'
-        période_actuelle = 0
-
-        while période_actuelle < _nb_périodes:
-
-            # ■■■■■■■■■■ Véhicules ■■■■■■■■■■
-
-            nb_véhicules = 0
-
-            # trafic faible/moyen/élevé
-            niv_trafic = random.randint(1, 3)
-            if niv_trafic == 1:
-                nb_véhicules = random.randint(0, 20)
-            elif niv_trafic == 2:
-                nb_véhicules = random.randint(21, 50)
-            elif niv_trafic == 3:
-                nb_véhicules = random.randint(51, 100)
-
-            # ■■■■■■■■■■ Date ■■■■■■■■■■
-
-            heure = int((période_actuelle + 1) / 60)
-            minutes = (période_actuelle + 1) % 60
-
-            # matin
-            if plage_horaire_actuelle == 'm':
-                heure += 7
-
-            # soir
-            if plage_horaire_actuelle == 's':
-                heure += 19
-
-            date_info_trafic = datetime.datetime(2020, 1, jour_actuel + 1, heure, minutes)
-
-            # ■■■■■■■■■■ Enregistrer ■■■■■■■■■■
-
-            dic_info_trafic[date_info_trafic.strftime("%Y%m%d%H%M")] = nb_véhicules
-
-            # ■■■■■■■■■■ Période suivante ■■■■■■■■■■
-
-            période_actuelle += 1
-
-            # Passer de la plage matin à soir
-            if plage_horaire_actuelle == 'm' and période_actuelle == _nb_périodes:
-                plage_horaire_actuelle = 's'
-                période_actuelle = 0
-
-        # Passer au jour suivant
-        jour_actuel += 1
-
-    return dic_info_trafic
-
 
 """
 Génére des lieux reliés par des routes
@@ -170,8 +220,8 @@ Retours
 ----------
 list
     Tableau d'objets Lieu
-dict
-    Pour chaque nom de lieu, un tableau contenant la liste des routes de ce lieu
+list
+    Tableau d'objets Route
 """
 
 
@@ -181,27 +231,32 @@ def fctGénérerPlan(_nb_lieux):
 
     tb_lieux = []
 
-    dic_routes_ville = {}
+    tb_routes = []
 
+    nb_heures_ouvert = random.randint(5, 9)
     # Création des points de livraison
     for i in range(_nb_lieux):
-        lieu = Lieu(i, TypeLieu.LIVRAISON, 9, 18)
+        # TODO : - A tester - heure début fin aléatoire
+        lieu = Lieu(i, TypeLieu.LIVRAISON, 7, 7 + nb_heures_ouvert)
         tb_lieux.append(lieu)
 
     # Un lieu aléatoire devient le dépot
-    tb_lieux[random.randint(0, len(tb_lieux) - 1)].type_lieu = TypeLieu.DEPOT
+    index_lieu_aléatoire = random.randint(0, len(tb_lieux) - 1)
+    tb_lieux[index_lieu_aléatoire].type_lieu = TypeLieu.DEPOT
+    tb_lieux[index_lieu_aléatoire].heure_début = 6
+    tb_lieux[index_lieu_aléatoire].heure_fin = 22
 
     # Génération des routes
     for lieu in tb_lieux:
         print("\nTraitement d'un lieu")
 
-        # check if key exists in dictionary by checking if get() returned None
-        if dic_routes_ville.get(lieu.nom_lieu) is None:
-            dic_routes_ville[lieu.nom_lieu] = []
+        # Au moins une route s'il n'en existe pas encore
+        if len(lieu.tb_id_routes) == 0:
+            pourcentage = 100
+        else:
+            pourcentage = random.randint(0, 100)
 
-        pourcentage = 100
-
-        while pourcentage >= 70:
+        while pourcentage >= 55:
             print("Générer une route (" + str(pourcentage) + ")")
 
             # type de route aléatoire
@@ -209,32 +264,33 @@ def fctGénérerPlan(_nb_lieux):
             # longueur aléatoire
             longueur_route = random.randint(1, 10)
 
+            # création de la route
+            route = Route(type_route, longueur_route)
+            print("ID ROUTE : " + route.id)
+
+            # génération des données sur 1 jour, période de 120 unités de temps
+            route.fctGénérerTrafic(1, 120)
+
             # voisin aléatoire, différent du lieu actuel
             voisin = lieu
             while voisin is lieu:
                 voisin = tb_lieux[random.randint(0, len(tb_lieux) - 1)]
 
-            # création de la route
-            route = Route(type_route, longueur_route)
+            lieu.tb_id_routes.append(route.id)
+            voisin.tb_id_routes.append(route.id)
 
-            # génération des données sur 1 jour, période de 120 unités de temps
-            route.dic_info_trafic = fctGénérerTrafic(1, 120)
-
-            dic_routes_ville[lieu.nom_lieu].append(route)
-
-            # check if key exists in dictionary by checking if get() returned None
-            if dic_routes_ville.get(voisin.nom_lieu) is None:
-                dic_routes_ville[voisin.nom_lieu] = []
-
-            dic_routes_ville[voisin.nom_lieu].append(route)
+            tb_routes.append(route)
 
             print("Nouvelle route de " + lieu.nom_lieu + " à " + voisin.nom_lieu)
+
             pourcentage = random.randint(0, 100)
 
-    return tb_lieux, dic_routes_ville
+    # TODO : Parcours du plan, si tous les noeuds ne sont PAS atteignables, on recommence
+
+    return tb_lieux, tb_routes
 
 
-tb_lieux, dic_routes_lieu = fctGénérerPlan(10)
+tb_lieux, tb_routes = fctGénérerPlan(20)
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
@@ -242,80 +298,128 @@ tb_lieux, dic_routes_lieu = fctGénérerPlan(10)
     Génération du JSON
 """
 
+import json
+
 
 def fctGénérerJSON():
-
     lieux_JSON = []
     for lieu in tb_lieux:
         lieux_JSON.append({
             'nom_lieu': lieu.nom_lieu,
             'type_lieu': str(lieu.type_lieu),
             'début': lieu.heure_début,
-            'fin': lieu.heure_fin
+            'fin': lieu.heure_fin,
+            'id_routes': lieu.tb_id_routes
         })
 
-    routes_lieu_JSON =  {}
-    for nom_lieu in dic_routes_lieu:
-        routes_lieu_JSON[nom_lieu] = []
-        for route in dic_routes_lieu[nom_lieu]:
-            routes_lieu_JSON[nom_lieu].append({
-                'type_route':str(route.type_route),
-                'longueur':route.longueur,
-                'info_trafic':route.dic_info_trafic
-            })
+    routes_JSON = []
+    for route in tb_routes:
+        routes_JSON.append({
+            'id_route': route.id,
+            'type_route': str(route.type_route),
+            'longueur': route.longueur,
+            'info_trafic': route.dic_info_trafic
+        })
 
     # colis
-    colis_JSON =  {}
+    colis_JSON = {}
 
     # écriture
     with open('data.txt', 'w') as outfile:
         json.dump({
-            'lieux':lieux_JSON,
-            'routes_lieu': routes_lieu_JSON,
+            'lieux': lieux_JSON,
+            'routes': routes_JSON,
             'colis': colis_JSON
         }, outfile)
+
 
 fctGénérerJSON()
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 """
+    Enregistrement dans mongoDB
+"""
+
+
+def fctEnregistrementDB(_document):
+    """
+
+collection_trafic_stamped.insert_one({
+    "_id": trafic["_id"],
+    "num_arete": trafic["num_arete"],
+    "date": date,
+    "nb_vehicules": trafic["nb_vehicules"]
+})
+
+"""
+
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+"""
     Génération du graphe
 """
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
-G = nx.Graph()
 
-# Ajout des noeuds au graphe
-color_map = []
-for lieu in tb_lieux:
-    G.add_node(lieu.nom_lieu)
+def fctGénérerGraph():
+    G = nx.Graph()
 
-    if lieu.type_lieu == TypeLieu.DEPOT:
-        color_map.append(0)
-    else:
-        color_map.append(1)
+    # Ajout des noeuds au graphe
+    nodes_color_map = []
+    for lieu in tb_lieux:
+        G.add_node(lieu.nom_lieu)
 
-# Ajout des arêtes au graphe
-for nom_lieu in dic_routes_lieu:
+        if lieu.type_lieu == TypeLieu.DEPOT:
+            nodes_color_map.append(0)
+        else:
+            nodes_color_map.append(1)
 
-    tb_routes = dic_routes_lieu[nom_lieu]
-    for route in tb_routes:
+    # Ajout des arêtes au graphe
+    for lieu in tb_lieux:
 
-        # comparer qui a la même route
-        for nom_lieu_voisin in dic_routes_lieu:
-            if nom_lieu is nom_lieu_voisin:
+        for voisin in tb_lieux:
+            if lieu is voisin:
                 continue
 
-            tb_routes_voisin = dic_routes_lieu[nom_lieu_voisin]
-            for route_voisin in tb_routes_voisin:
-                if route is not route_voisin:
-                    continue
+            # comparer quels lieux ont le même ID de route
+            for id_route in lieu.tb_id_routes:
+                for id_route_voisin in voisin.tb_id_routes:
+                    if id_route != id_route_voisin:
+                        continue
 
-                edge = (nom_lieu, nom_lieu_voisin)
-                G.add_edge(*edge)
+                    G.add_edge(lieu.nom_lieu, voisin.nom_lieu, color='b')
 
-nx.draw(G, node_color=color_map, cmap=plt.cm.Set1, with_labels=True)
-plt.savefig("graphe.png")  # save as png
-plt.show()  # display
+                """
+                route = fctChercherRouteParID(tb_routes, id_route)
+
+                edge_color = ''
+                if route.type_route is TypeRoute.DEPARTEMENTALE:
+                    edge_color = 'g'
+                elif route.type_route is TypeRoute.COMMUNALE:
+                    edge_color = 'y'
+                elif route.type_route is TypeRoute.NATIONALE:
+                    edge_color = 'm'
+                elif route.type_route is TypeRoute.AUTOROUTE:
+                    edge_color = 'b'
+                    
+                """
+
+    edges_color_map = nx.get_edge_attributes(G, 'color').values()
+
+    nx.draw(G, node_color=nodes_color_map, edge_color=edges_color_map, cmap=plt.cm.Set1, with_labels=True)
+    plt.savefig("graphe.png")  # save as png
+    plt.show()  # display
+
+
+fctGénérerGraph()
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+
+"""
+    Génération d'un itinéraire
+"""
