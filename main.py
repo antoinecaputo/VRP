@@ -336,7 +336,7 @@ def fctGénérerJSON():
     colis_JSON = {}
 
     # écriture
-    with open('data.txt', 'w') as outfile:
+    with open('data.json', 'w') as outfile:
         json.dump({
             'lieux': lieux_JSON,
             'routes': routes_JSON,
