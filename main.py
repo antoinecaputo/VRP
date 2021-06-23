@@ -26,9 +26,21 @@ class TypeColis(Enum):
     PETIT_CARTON = "petit_carton"
     LETTRE = "lettre"
 
+
 def fctGénérerColis(_tb_lieux, _nb_colis):
-    return
-    # for i in range
+    tb_colis = []
+
+    for i in range(_nb_colis):
+        type_colis = random.choice(list(TypeColis))
+
+        pt_livraison = None
+
+        while pt_livraison.type_lieu is not TypeLieu.LIVRAISON:
+            pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux))]
+
+        tb_colis.append(Colis(type_colis, pt_livraison))
+
+        return tb_colis
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -290,7 +302,6 @@ def fctGénérerPlan(_nb_lieux):
     return tb_lieux, tb_routes
 
 
-tb_lieux, tb_routes = fctGénérerPlan(20)
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
@@ -333,7 +344,6 @@ def fctGénérerJSON():
         }, outfile)
 
 
-fctGénérerJSON()
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
@@ -415,11 +425,26 @@ def fctGénérerGraph():
     plt.show()  # display
 
 
-fctGénérerGraph()
-
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 
 """
     Génération d'un itinéraire
 """
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+tb_lieux = []
+tb_routes = []
+tb_colis = []
+
+
+tb_lieux, tb_routes = fctGénérerPlan(20)
+
+tb_colis = fctGénérerColis(tb_lieux, 100)
+
+fctGénérerJSON()
+
+fctGénérerGraph()
+
+# ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
