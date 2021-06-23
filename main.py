@@ -33,14 +33,14 @@ def fctGénérerColis(_tb_lieux, _nb_colis):
     for i in range(_nb_colis):
         type_colis = random.choice(list(TypeColis))
 
-        pt_livraison = None
-
+        # do while
+        pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux)-1)]
         while pt_livraison.type_lieu is not TypeLieu.LIVRAISON:
-            pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux))]
+            pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux)-1)]
 
-        tb_colis.append(Colis(type_colis, pt_livraison))
+        tb_colis.append(Colis(type_colis, pt_livraison.nom_lieu))
 
-        return tb_colis
+    return tb_colis
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -302,7 +302,6 @@ def fctGénérerPlan(_nb_lieux):
     return tb_lieux, tb_routes
 
 
-
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 """
@@ -333,7 +332,12 @@ def fctGénérerJSON():
         })
 
     # colis
-    colis_JSON = {}
+    colis_JSON = []
+    for colis in tb_colis:
+        colis_JSON.append({
+            'type_colis':str(colis.type_colis),
+            'pt_livraison':colis.point_livraison
+        })
 
     # écriture
     with open('data.json', 'w') as outfile:
@@ -342,7 +346,6 @@ def fctGénérerJSON():
             'routes': routes_JSON,
             'colis': colis_JSON
         }, outfile)
-
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -437,7 +440,6 @@ def fctGénérerGraph():
 tb_lieux = []
 tb_routes = []
 tb_colis = []
-
 
 tb_lieux, tb_routes = fctGénérerPlan(20)
 
