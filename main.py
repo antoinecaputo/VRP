@@ -442,6 +442,22 @@ def fctGénérerGraph():
     Génération d'un itinéraire
 """
 
+"""
+    Comment diviser les colis par nombre de camion ?
+    
+    Lettres --> Moto
+    Petits colis --> voiture
+    Gros colis --> camion
+    
+    Liste des colis du même type avec une moyenne de poids la plus basse
+    Essayer plusieurs combinaisons : pb du voyageur --> complexité polinomyale !!
+    
+    
+    Pt départ : dépot (h ouverture du dépot)
+    
+"""
+
+
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 tb_lieux = []
