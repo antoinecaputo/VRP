@@ -354,9 +354,16 @@ def fctGénérerJSON():
     Enregistrement dans mongoDB
 """
 
+# from pymongo import MongoClient
 
 def fctEnregistrementDB(_document):
     """
+client = MongoClient('localhost', 27017)
+db = client['DataProject']
+collection_trafic = db['vehicules']
+
+data_stamped = []
+collection_trafic_stamped = db['vehicules_stamped']
 
 collection_trafic_stamped.insert_one({
     "_id": trafic["_id"],
