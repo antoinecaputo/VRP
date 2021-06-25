@@ -34,9 +34,9 @@ def fctGénérerColis(_tb_lieux, _nb_colis):
         type_colis = random.choice(list(TypeColis))
 
         # do while
-        pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux)-1)]
+        pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux) - 1)]
         while pt_livraison.type_lieu is not TypeLieu.LIVRAISON:
-            pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux)-1)]
+            pt_livraison = _tb_lieux[random.randint(0, len(tb_lieux) - 1)]
 
         tb_colis.append(Colis(type_colis, pt_livraison.nom_lieu))
 
@@ -211,7 +211,7 @@ class TypeRoute(Enum):
 
 def fctChercherRouteParID(_tb_routes, _id):
     for _route in _tb_routes:
-        if _route.id == id:
+        if _route.id == _id:
             return _route
 
     return None
@@ -335,8 +335,8 @@ def fctGénérerJSON():
     colis_JSON = []
     for colis in tb_colis:
         colis_JSON.append({
-            'type_colis':str(colis.type_colis),
-            'pt_livraison':colis.point_livraison
+            'type_colis': str(colis.type_colis),
+            'pt_livraison': colis.point_livraison
         })
 
     # écriture
@@ -353,6 +353,7 @@ def fctGénérerJSON():
 """
     Enregistrement dans mongoDB
 """
+
 
 # from pymongo import MongoClient
 
@@ -411,22 +412,19 @@ def fctGénérerGraph():
                     if id_route != id_route_voisin:
                         continue
 
-                    G.add_edge(lieu.nom_lieu, voisin.nom_lieu, color='b')
+                    route = fctChercherRouteParID(tb_routes, id_route)
 
-                """
-                route = fctChercherRouteParID(tb_routes, id_route)
+                    edge_color = ''
+                    if route.type_route is TypeRoute.DEPARTEMENTALE:
+                        edge_color = 'g'
+                    elif route.type_route is TypeRoute.COMMUNALE:
+                        edge_color = 'y'
+                    elif route.type_route is TypeRoute.NATIONALE:
+                        edge_color = 'm'
+                    elif route.type_route is TypeRoute.AUTOROUTE:
+                        edge_color = 'b'
 
-                edge_color = ''
-                if route.type_route is TypeRoute.DEPARTEMENTALE:
-                    edge_color = 'g'
-                elif route.type_route is TypeRoute.COMMUNALE:
-                    edge_color = 'y'
-                elif route.type_route is TypeRoute.NATIONALE:
-                    edge_color = 'm'
-                elif route.type_route is TypeRoute.AUTOROUTE:
-                    edge_color = 'b'
-                    
-                """
+                    G.add_edge(lieu.nom_lieu, voisin.nom_lieu, color=edge_color)
 
     edges_color_map = nx.get_edge_attributes(G, 'color').values()
 
@@ -456,7 +454,6 @@ def fctGénérerGraph():
     Pt départ : dépot (h ouverture du dépot)
     
 """
-
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
