@@ -89,7 +89,7 @@ class Route:
     dic_info_trafic = {}
 
     def __init__(self, _type_route, _longueur):
-        self.id = fctUUID()
+        # self.id = fctUUID()
         self.type_route = _type_route
         self.longueur = _longueur
 
@@ -209,12 +209,51 @@ class TypeRoute(Enum):
     COMMUNALE = "communale"  # 50
 
 
-def fctChercherRouteParID(_tb_routes, _id):
-    for _route in _tb_routes:
-        if _route.id == _id:
-            return _route
+def fctListeVoisins(_tb_lieux):
+    dic_voisins_lieu = {}
 
-    return None
+    # complexité polynomiale !!
+
+    for lieu in _tb_lieux:
+
+        # initialisation dictionnaire des voisins du lieu actuel
+        if dic_voisins_lieu[lieu.nom_lieu] is None:
+            dic_voisins_lieu[lieu.nom_lieu] = {}
+
+        # parcours des route du lieu actuel
+        for id_route in lieu.tb_id_routes:
+
+            # comparaison avec d'autres lieux qui ont les mêmes routes
+            for voisin in _tb_lieux:
+
+                if lieu is voisin:
+                    continue
+
+                # les deux lieux n'ont pas la même route
+                if id_route not in voisin.tb_id_routes:
+                    continue
+
+                # initialisation du dictionnaire des voisins du voisin actuel
+                if dic_voisins_lieu[voisin.nom_lieu] is None:
+                    dic_voisins_lieu[voisin.nom_lieu] = {}
+
+                # initialisation du tableau des routes du lieu actuel
+                if dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu] is None:
+                    dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu] = []
+
+                # initialisation du tableau des routes du voisin actuel
+                if dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu] is None:
+                    dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu] = []
+
+                # ajout de la route au lieu actuel
+                if id_route not in dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu]:
+                    dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu].append(id_route)
+
+                # ajout de la route au voisin actuel
+                if id_route not in dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu]:
+                    dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu].append(id_route)
+
+    return dic_voisins_lieu
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -243,7 +282,9 @@ def fctGénérerPlan(_nb_lieux):
 
     tb_lieux = []
 
-    tb_routes = []
+    # tb_routes = []
+    id_route = 0
+    dic_routes = {}
 
     nb_heures_ouvert = random.randint(5, 9)
     # Création des points de livraison
@@ -291,15 +332,16 @@ def fctGénérerPlan(_nb_lieux):
             lieu.tb_id_routes.append(route.id)
             voisin.tb_id_routes.append(route.id)
 
-            tb_routes.append(route)
+            dic_routes[id_route] = route
+            print("Nouvelle route n°" + id_route + " de " + lieu.nom_lieu + " à " + voisin.nom_lieu)
 
-            print("Nouvelle route de " + lieu.nom_lieu + " à " + voisin.nom_lieu)
+            id_route += 1
 
             pourcentage = random.randint(0, 100)
 
     # TODO : Parcours du plan, si tous les noeuds ne sont PAS atteignables, on recommence
 
-    return tb_lieux, tb_routes
+    return tb_lieux, dic_routes
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -323,9 +365,11 @@ def fctGénérerJSON():
         })
 
     routes_JSON = []
-    for route in tb_routes:
+    for id_route in dic_routes:
+        route = dic_routes[id_route]
+
         routes_JSON.append({
-            'id_route': route.id,
+            'id_route': id_route,
             'type_route': str(route.type_route),
             'longueur': route.longueur,
             'info_trafic': route.dic_info_trafic
@@ -412,7 +456,7 @@ def fctGénérerGraph():
                     if id_route != id_route_voisin:
                         continue
 
-                    route = fctChercherRouteParID(tb_routes, id_route)
+                    route = dic_routes[id_route]
 
                     edge_color = ''
                     if route.type_route is TypeRoute.DEPARTEMENTALE:
@@ -458,10 +502,10 @@ def fctGénérerGraph():
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 tb_lieux = []
-tb_routes = []
+dic_routes = {}
 tb_colis = []
 
-tb_lieux, tb_routes = fctGénérerPlan(20)
+tb_lieux, dic_routes = fctGénérerPlan(20)
 
 tb_colis = fctGénérerColis(tb_lieux, 100)
 
@@ -470,3 +514,5 @@ fctGénérerJSON()
 fctGénérerGraph()
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+dic_voisins = fctListeVoisins(tb_lieux)
