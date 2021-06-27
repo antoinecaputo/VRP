@@ -319,7 +319,6 @@ def fctGénérerPlan(_nb_lieux):
 
             # création de la route
             route = Route(type_route, longueur_route)
-            print("ID ROUTE : " + route.id)
 
             # génération des données sur 1 jour, période de 120 unités de temps
             route.fctGénérerTrafic(1, 120)
@@ -329,11 +328,11 @@ def fctGénérerPlan(_nb_lieux):
             while voisin is lieu:
                 voisin = tb_lieux[random.randint(0, len(tb_lieux) - 1)]
 
-            lieu.tb_id_routes.append(route.id)
-            voisin.tb_id_routes.append(route.id)
+            lieu.tb_id_routes.append(id_route)
+            voisin.tb_id_routes.append(id_route)
 
             dic_routes[id_route] = route
-            print("Nouvelle route n°" + id_route + " de " + lieu.nom_lieu + " à " + voisin.nom_lieu)
+            print("Nouvelle route n°" + str(id_route) + " de " + lieu.nom_lieu + " à " + voisin.nom_lieu)
 
             id_route += 1
 
