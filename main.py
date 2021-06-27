@@ -210,6 +210,7 @@ class TypeRoute(Enum):
 
 
 def fctListeVoisins(_tb_lieux):
+
     dic_voisins_lieu = {}
 
     # complexité polynomiale !!
@@ -217,7 +218,7 @@ def fctListeVoisins(_tb_lieux):
     for lieu in _tb_lieux:
 
         # initialisation dictionnaire des voisins du lieu actuel
-        if dic_voisins_lieu[lieu.nom_lieu] is None:
+        if lieu.nom_lieu not in dic_voisins_lieu:
             dic_voisins_lieu[lieu.nom_lieu] = {}
 
         # parcours des route du lieu actuel
@@ -234,15 +235,15 @@ def fctListeVoisins(_tb_lieux):
                     continue
 
                 # initialisation du dictionnaire des voisins du voisin actuel
-                if dic_voisins_lieu[voisin.nom_lieu] is None:
+                if voisin.nom_lieu not in dic_voisins_lieu:
                     dic_voisins_lieu[voisin.nom_lieu] = {}
 
                 # initialisation du tableau des routes du lieu actuel
-                if dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu] is None:
+                if voisin.nom_lieu not in dic_voisins_lieu[lieu.nom_lieu]:
                     dic_voisins_lieu[lieu.nom_lieu][voisin.nom_lieu] = []
 
                 # initialisation du tableau des routes du voisin actuel
-                if dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu] is None:
+                if lieu.nom_lieu not in dic_voisins_lieu[voisin.nom_lieu]:
                     dic_voisins_lieu[voisin.nom_lieu][lieu.nom_lieu] = []
 
                 # ajout de la route au lieu actuel
