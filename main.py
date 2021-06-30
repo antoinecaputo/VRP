@@ -36,10 +36,12 @@ def fctGénérerColis(_dic_lieux, _nb_colis):
     for i in range(_nb_colis):
         type_colis = random.choice(list(TypeColis))
 
+        # random.choice(list(dic_lieux.keys()))
+
         # do while
-        pt_livraison = _dic_lieux(random.choice(list(_dic_lieux.keys())))
+        pt_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
         while pt_livraison.type_lieu is not TypeLieu.LIVRAISON:
-            pt_livraison = _dic_lieux(random.choice(list(_dic_lieux.keys())))
+            pt_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
 
         tb_colis.append(Colis(type_colis, pt_livraison.nom_lieu))
 
@@ -247,7 +249,7 @@ def fctListeVoisins(_dic_lieux):
 
     # complexité polynomiale !!
 
-    for lieu in _dic_lieux.items():
+    for lieu in _dic_lieux.values():
 
         # initialisation dictionnaire des voisins du lieu actuel
         if lieu.nom_lieu not in dic_voisins_lieu:
@@ -257,7 +259,7 @@ def fctListeVoisins(_dic_lieux):
         for id_route in lieu.tb_id_routes:
 
             # comparaison avec d'autres lieux qui ont les mêmes routes
-            for voisin in _dic_lieux.items():
+            for voisin in _dic_lieux.values():
 
                 if lieu is voisin:
                     continue
@@ -335,7 +337,6 @@ def fctGénérerPlan(_nb_lieux):
     dépot.heure_début = 6
     dépot.heure_fin = 22
     dic_lieux[index_dépot] = dépot
-
 
     # index_lieu_aléatoire = numpy.random.randint(0, len(tb_lieux) - 1)
     # tb_lieux[index_lieu_aléatoire].type_lieu = TypeLieu.DEPOT
@@ -441,26 +442,41 @@ def fctGénérerJSON():
     Enregistrement dans mongoDB
 """
 
+from pymongo import MongoClient
 
-# from pymongo import MongoClient
 
-def fctEnregistrementDB(_document):
-    """
-client = MongoClient('localhost', 27017)
-db = client['DataProject']
-collection_trafic = db['vehicules']
+def fctEnregistrementDB(_tb_lieux, _dic_routes, _tb_colis):
+    client = MongoClient('localhost', 27017)
+    db = client['DataProject']
 
-data_stamped = []
-collection_trafic_stamped = db['vehicules_stamped']
+    collection = db['lieux']
 
-collection_trafic_stamped.insert_one({
-    "_id": trafic["_id"],
-    "num_arete": trafic["num_arete"],
-    "date": date,
-    "nb_vehicules": trafic["nb_vehicules"]
-})
+    for nom_lieu, lieu in dic_lieux.items():
+        collection.insert_one({
+            'nom_lieu': nom_lieu,
+            'type_lieu': str(lieu.type_lieu),
+            'début': lieu.heure_début,
+            'fin': lieu.heure_fin,
+            'id_routes': lieu.tb_id_routes
+        })
 
-"""
+    collection = db['routes']
+
+    for id_route, route in _dic_routes.items():
+        collection.insert_one({
+            'id_route': id_route,
+            'type_route': str(route.type_route),
+            'longueur': route.longueur,
+            'info_trafic': route.dic_info_trafic
+        })
+
+    collection = db['colis']
+
+    for colis in tb_colis:
+        collection.insert_one({
+            'type_colis': str(colis.type_colis),
+            'pt_livraison': colis.point_livraison
+        })
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
