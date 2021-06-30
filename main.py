@@ -19,9 +19,9 @@ def fctUUID():
 # Un colis doit être déposé dans un point de livraison spécifique
 class Colis:
 
-    def __init__(self, _type_colis, _pt_livraison):
+    def __init__(self, _type_colis, _lieu_livraison):
         self.type_colis = _type_colis
-        self.point_livraison = _pt_livraison
+        self.lieu_livraison = str(_lieu_livraison)
 
 
 class TypeColis(Enum):
@@ -39,11 +39,11 @@ def fctGénérerColis(_dic_lieux, _nb_colis):
         # random.choice(list(dic_lieux.keys()))
 
         # do while
-        pt_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
-        while pt_livraison.type_lieu is not TypeLieu.LIVRAISON:
-            pt_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
+        lieu_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
+        while lieu_livraison.type_lieu is not TypeLieu.LIVRAISON:
+            lieu_livraison = _dic_lieux[random.choice(list(_dic_lieux.keys()))]
 
-        tb_colis.append(Colis(type_colis, pt_livraison.nom_lieu))
+        tb_colis.append(Colis(type_colis, lieu_livraison.nom_lieu))
 
     return tb_colis
 
@@ -51,15 +51,15 @@ def fctGénérerColis(_dic_lieux, _nb_colis):
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 # Un lieu peut être un dépot ou un point de livraison
-# # Un point de livraison a des horaires d'ouverture et de fermeture
+# # Un point de livraison a des horaires d'ouverture et de fermeturee
 class Lieu:
 
-    def __init__(self, _nom_lieu, _type_lieu, _heure_début, _heure_fin):
+    def __init__(self, _nom_lieu, _type_lieu, _heure_ouverture, _heure_fermeture):
         self.tb_id_routes = []
         self.nom_lieu = str(_nom_lieu)
         self.type_lieu = _type_lieu
-        self.heure_début = _heure_début
-        self.heure_fin = _heure_fin
+        self.heure_ouverture = _heure_ouverture
+        self.heure_fermeture = _heure_fermeture
 
 
 class TypeLieu(Enum):
@@ -100,7 +100,10 @@ class Route:
 
     def fctCalculerTempsTrajet(self, _datetime, _type_véhicule):
 
-        if str(_datetime) not in self.dic_info_trafic:
+        datetime_str = _datetime.strftime("%Y%m%d%H%M")
+
+        if datetime_str not in self.dic_info_trafic:
+            print(datetime_str + " not in dic_info_trafic")
             return None
 
         vitesse = 0
@@ -116,8 +119,12 @@ class Route:
         elif self.type_route is TypeRoute.COMMUNALE:
             vitesse = 80
 
-        # t = v / d * (ln trafic +1)
-        temps_trajet = vitesse / (self.longueur * (math.log(self.dic_info_trafic[str(_datetime)]) + 1))
+        # t (min) = v / d * (ln trafic +1)
+        trafic = self.dic_info_trafic[datetime_str]
+        if trafic <= 0:
+            trafic = 1
+
+        temps_trajet = vitesse / (self.longueur * math.log(1 + trafic))
 
         return temps_trajet
 
@@ -141,81 +148,40 @@ class Route:
 
     def fctGénérerTrafic(self, _nb_jours, _nb_périodes):
 
+        _nb_jours = 1
+        _nb_périodes = 1080  # 6h -> 0h : 18h
         jour_actuel = 0
-
-        """
-        nb_véhicules = 0
-        if _route.type_route is TypeRoute.COMMUNALE:
-            nb_véhicules = 1
-        elif _route.type_route is TypeRoute.DEPARTEMENTALE:
-            nb_véhicules = 2
-        elif _route.type_route is TypeRoute.NATIONALE:
-            nb_véhicules = 3
-        elif _route.type_route is TypeRoute.AUTOROUTE:
-            nb_véhicules = 4
-        """
-
-        # nb_véhicules += _route.longueur
 
         while jour_actuel < _nb_jours:
 
             plage_horaire_actuelle = 'm'
             période_actuelle = 0
 
-            """
-            niv_trafic = numpy.random.randint(0, nb_véhicules)
-            nb_véhicules = 0
-            if niv_trafic == 1:
-                nb_véhicules = numpy.random.randint(0, 2)
-            elif niv_trafic == 2:
-                nb_véhicules = numpy.random.randint(3, 6)
-            elif niv_trafic == 3:
-                nb_véhicules = numpy.random.randint(6, 10)
-            """
             # TODO : random --> toujours la même série de nombre
-            random.seed()
 
-            # fct_trafic = random.randint(0, 1)
             nb_véhicules = random.randint(0, 10)
 
             while période_actuelle < _nb_périodes:
 
                 # ■■■■■■■■■■ Véhicules ■■■■■■■■■■
 
-                """
-                if niv_trafic == 1:
-                    nb_véhicules = numpy.random.randint(0, 20)
-                elif niv_trafic == 2:
-                    nb_véhicules = numpy.random.randint(21, 50)
-                elif niv_trafic == 3:
-                    nb_véhicules = numpy.random.randint(51, 100)
-                """
-                random.seed()
                 nb_véhicules += random.randint(-10, 10)
 
                 if nb_véhicules < 0:
                     nb_véhicules = 0
 
-                """
-                if fct_trafic == 0:
-                    # 5x − x²
-                    nb_véhicules = 5 * période_actuelle - période_actuelle ** 2
-                elif fct_trafic == 1:
-                    # f(x)=3-(2+x^(3)-2 x^(2))
-                    nb_véhicules = 3 - (2 + (période_actuelle ** 3) - 2 * période_actuelle ** 2)
-                """
                 # ■■■■■■■■■■ Date ■■■■■■■■■■
 
-                heure = int((période_actuelle + 1) / 60)
-                minutes = (période_actuelle + 1) % 60
+                heure = int(période_actuelle / 60)
+                minutes = période_actuelle % 60
 
-                # matin
-                if plage_horaire_actuelle == 'm':
-                    heure += 7
+                # début data à partir de 6h
+                heure += 6
 
-                # soir
-                if plage_horaire_actuelle == 's':
-                    heure += 19
+                # passer de matin à soir
+                if plage_horaire_actuelle == 'm' and heure >= 12:
+                    plage_horaire_actuelle = 's'
+
 
                 date_info_trafic = datetime.datetime(2020, 1, jour_actuel + 1, heure, minutes)
 
@@ -226,12 +192,6 @@ class Route:
                 # ■■■■■■■■■■ Période suivante ■■■■■■■■■■
 
                 période_actuelle += 1
-
-                # Passer de la plage matin à soir
-                if plage_horaire_actuelle == 'm' and période_actuelle == _nb_périodes:
-                    plage_horaire_actuelle = 's'
-                    période_actuelle = 0
-                    niv_trafic = numpy.random.randint(1, 3)
 
             # Passer au jour suivant
             jour_actuel += 1
@@ -322,26 +282,27 @@ def fctGénérerPlan(_nb_lieux):
     id_route = 0
     dic_routes = {}
 
-    nb_heures_ouvert = numpy.random.randint(5, 9)
+    # TODO : - A tester - heure ouverture fermeture aléatoire
+    nb_heures_ouvert = numpy.random.randint(7, 11)
     # Création des points de livraison
     for i in range(_nb_lieux):
-        # TODO : - A tester - heure début fin aléatoire
-        lieu = Lieu(i, TypeLieu.LIVRAISON, 7, 7 + nb_heures_ouvert)
-        dic_lieux[i] = lieu
+        ouverture = random.randint(7, 10)
+        lieu = Lieu(i, TypeLieu.LIVRAISON, ouverture, ouverture + nb_heures_ouvert)
+        dic_lieux[str(i)] = lieu
         # tb_lieux.append(lieu)
 
     # Un lieu aléatoire devient le dépot
-    index_dépot = random.choice(list(dic_lieux.keys()))
+    index_dépot = str(random.choice(list(dic_lieux.keys())))
     dépot = dic_lieux[index_dépot]
     dépot.type_lieu = TypeLieu.DEPOT
-    dépot.heure_début = 6
-    dépot.heure_fin = 22
+    dépot.heure_ouverture = 7
+    dépot.heure_fermeture = 22
     dic_lieux[index_dépot] = dépot
 
     # index_lieu_aléatoire = numpy.random.randint(0, len(tb_lieux) - 1)
     # tb_lieux[index_lieu_aléatoire].type_lieu = TypeLieu.DEPOT
-    # tb_lieux[index_lieu_aléatoire].heure_début = 6
-    # tb_lieux[index_lieu_aléatoire].heure_fin = 22
+    # tb_lieux[index_lieu_aléatoire].heure_ouverture = 6
+    # tb_lieux[index_lieu_aléatoire].heure_fermeture = 22
     # index_dépot = index_lieu_aléatoire
 
     # Génération des routes
@@ -403,8 +364,8 @@ def fctGénérerJSON():
         lieux_JSON.append({
             'nom_lieu': lieu.nom_lieu,
             'type_lieu': str(lieu.type_lieu),
-            'début': lieu.heure_début,
-            'fin': lieu.heure_fin,
+            'ouverture': lieu.heure_ouverture,
+            'fermeture': lieu.heure_fermeture,
             'id_routes': lieu.tb_id_routes
         })
 
@@ -424,7 +385,7 @@ def fctGénérerJSON():
     for colis in tb_colis:
         colis_JSON.append({
             'type_colis': str(colis.type_colis),
-            'pt_livraison': colis.point_livraison
+            'lieu_livraison': colis.lieu_livraison
         })
 
     # écriture
@@ -455,8 +416,8 @@ def fctEnregistrementDB(_tb_lieux, _dic_routes, _tb_colis):
         collection.insert_one({
             'nom_lieu': nom_lieu,
             'type_lieu': str(lieu.type_lieu),
-            'début': lieu.heure_début,
-            'fin': lieu.heure_fin,
+            'ouverture': lieu.heure_ouverture,
+            'fermeture': lieu.heure_fermeture,
             'id_routes': lieu.tb_id_routes
         })
 
@@ -475,7 +436,7 @@ def fctEnregistrementDB(_tb_lieux, _dic_routes, _tb_colis):
     for colis in tb_colis:
         collection.insert_one({
             'type_colis': str(colis.type_colis),
-            'pt_livraison': colis.point_livraison
+            'lieu_livraison': colis.lieu_livraison
         })
 
 
@@ -531,9 +492,23 @@ def fctGénérerGraph():
 
     edges_color_map = nx.get_edge_attributes(G, 'color').values()
 
-    nx.draw(G, node_color=nodes_color_map, edge_color=edges_color_map, cmap=plt.cm.Set1, with_labels=True)
+    if not nx.is_connected(G):
+        print("not reachable nodes in graph")
+        import sys
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
+
+    nx.draw(G, node_color=nodes_color_map, edge_color=edges_color_map, cmap=plt.cm.Set1, node_size=100, font_size=10,
+            with_labels=True)
+    # larger figure size
+    plt.figure(3, figsize=(15, 15))
+
     plt.savefig("graphe.png")  # save as png
     plt.show()  # display
+
+    # H = nx.path_graph(G.number_of_nodes())
+    # H.add_edges_from(G.edges())
+    return G
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -564,46 +539,91 @@ def fctGénérerGraph():
 dic_routes = {}
 tb_colis = []
 
-index_dépot, dic_lieux, dic_routes = fctGénérerPlan(20)
+index_dépot, dic_lieux, dic_routes = fctGénérerPlan(15)
 
 tb_colis = fctGénérerColis(dic_lieux, 20)
 
 fctGénérerJSON()
 
-fctGénérerGraph()
+G = fctGénérerGraph()
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 dic_voisins = fctListeVoisins(dic_lieux)
 
 
-def fctGénérerTournée(_tb_lieux, _index_dépot, _tb_colis, _type_colis):
+def fctGénérerTournée(_index_dépot, _tb_colis, _type_véhicule, _G, _dic_lieux, _dic_voisins, _dic_routes):
     tb_colis_a_livrer = []
 
-    # compl llinéaire
+    type_colis = None
+    if _type_véhicule is TypeVéhicule.MOTO:
+        type_colis = TypeColis.LETTRE
+    elif _type_véhicule is TypeVéhicule.VOITURE:
+        type_colis = TypeColis.PETIT_CARTON
+    elif _type_véhicule is TypeVéhicule.CAMION:
+        type_colis = TypeColis.GROS_CARTON
+
+    # complexité linéaire
     for colis in _tb_colis:
-        if colis.type_colis is _type_colis:
+        if colis.type_colis is type_colis:
             tb_colis_a_livrer.append(colis)
 
-    lieu_actuel = _tb_lieux[_index_dépot]
+    tb_colis_a_livrer.sort(key=lambda x: (_dic_lieux[x.lieu_livraison].heure_ouverture, [x.lieu_livraison]))
+    # tb_colis_a_livrer.sort(key=lambda x: [x.lieu_livraison])
 
-    # chercher a minimiser l'ordre
+    print("\n")
+    for colis in tb_colis_a_livrer:
+        print(str(colis.type_colis) + " au lieu " + str(colis.lieu_livraison) + " à partir de " + str(
+            _dic_lieux[colis.lieu_livraison].heure_ouverture) + "h")
+
+    print("\n")
+
+    lieu_actuel = str(_index_dépot)
+
+    #                               année, mois, num_jours, heures, minutes
+    temps_actuel = datetime.datetime(2020, 1, 0 + 1, _dic_lieux[lieu_actuel].heure_ouverture, 0)
+
+    temps_trajet_itinéraire = 0
+
+    for colis in tb_colis_a_livrer:
+        destination = str(colis.lieu_livraison)
+        print("Départ " + lieu_actuel + " pour aller à " + destination)
+        print("Heure de départ : " + str(temps_actuel))
+
+        itinéraire = nx.astar_path(_G, lieu_actuel, destination)
+        print(itinéraire)
+
+        for i in range(len(itinéraire) - 1):
+
+            tb_routes = dic_voisins[itinéraire[i]][itinéraire[i + 1]]
+
+            # exception
+            if tb_routes is None:
+                continue
+
+            if tb_routes[0] is None:
+                continue
+
+            route = dic_routes[tb_routes[0]]
+            temps_trajet = route.fctCalculerTempsTrajet(temps_actuel, _type_véhicule)
+            print("Route " + str(tb_routes[0]) + " : " + str(temps_trajet) + " minutes")
+            temps_trajet_itinéraire += temps_trajet
+
+            temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_trajet)
+
+        print("Heure d'arrivée : " + str(temps_actuel))
+        print("")
+        lieu_actuel = destination
+
+    print("Temps de trajet de l'itinéraire " + str(temps_trajet_itinéraire) + " minutes")
 
 
-# print(dic_voisins)
+fctGénérerTournée(index_dépot, tb_colis, TypeVéhicule.CAMION, G, dic_lieux, dic_voisins, dic_routes)
+
+# fctGénérerTournée(dic_lieux, index_dépot, tb_colis, TypeColis.LETTRE, dic_voisins)
+
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-def djikstra(_tb_lieux, _dic_voisins, _tb_lieux_livraisons, _index_dépot):
-    lieu_actuel = _tb_lieux[_index_dépot]
-    tb_lieux_visité = []
-
-    itinéraire_trouvé = False
-
-    while not itinéraire_trouvé:
-        tb_lieux_visité.append(lieu_actuel)
-
-        # Recherche de la route la plus rapide parmis les voisins
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -612,7 +632,7 @@ def djikstra(_tb_lieux, _dic_voisins, _tb_lieux_livraisons, _index_dépot):
 def astar(_lieu_destination):
 
     # heure de départ
-    heure_actuelle = tb_lieux[index_dépot].heure_début
+    heure_actuelle = tb_lieux[index_dépot].heure_ouverture
 
     open_list = []
     closed_list = []
