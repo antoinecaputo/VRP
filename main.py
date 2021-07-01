@@ -454,6 +454,23 @@ def fctEnregistrementDB(_tb_lieux, _dic_routes, _tb_colis):
         })
 
 
+def fctEnregistrementIntinéraireDB(_nb_lieux, _nb_colis, _nb_routes_empruntées, _temps_attente, _temps_retour_depot,
+                                   _temps_trajet_total):
+    client = MongoClient('localhost', 27017)
+    db = client['DataProject']
+
+    collection = db['trajets']
+
+    collection.insert_one({
+        'nombre_noeuds_dans_plan': _nb_lieux,
+        'nombre_colis_a_livrer': _nb_colis,
+        'nombre_routes_empruntees': _nb_routes_empruntées,
+        'temps_attente': _temps_attente,
+        'temps_retour_depot': _temps_retour_depot,
+        'temps_trajet_total': _temps_trajet_total
+    })
+
+
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 """
@@ -556,10 +573,6 @@ def fctGénérerGraph(_dic_voisins):
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-# tb_lieux = []
-dic_routes = {}
-tb_colis = []
-
 index_dépot, dic_lieux, dic_routes = fctGénérerPlan(50)
 
 dic_voisins = fctListeVoisins(dic_lieux)
@@ -609,7 +622,10 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
     #                               année, mois, num_jours, heures, minutes
     temps_actuel = datetime.datetime(2020, 1, 0 + 1, dic_lieux[lieu_actuel].heure_ouverture, 0)
 
-    temps_trajet_itinéraire = 0
+    # ananlyse statistique
+    nb_routes_empruntées = 0
+    temps_attente = 0
+    temps_trajet_total = 0
 
     for colis in tb_colis_a_livrer:
         destination = str(colis.lieu_livraison)
@@ -617,6 +633,7 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
         print("Heure de départ : " + str(temps_actuel))
 
         itinéraire = nx.astar_path(G, lieu_actuel, destination)
+        nb_routes_empruntées += len(itinéraire)
         print(itinéraire)
 
         for i in range(len(itinéraire) - 1):
@@ -633,7 +650,7 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
             route = dic_routes[tb_routes[0]]
             temps_trajet = route.fctCalculerTempsTrajet(temps_actuel, _type_véhicule)
             print("Route " + str(tb_routes[0]) + " : " + str(temps_trajet) + " minutes")
-            temps_trajet_itinéraire += temps_trajet
+            temps_trajet_total += temps_trajet
 
             temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_trajet)
 
@@ -643,12 +660,16 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
 
         if dic_lieux[lieu_actuel].heure_ouverture > temps_actuel.hour:
             print("Attente avant ouverture")
+            temps_attente += dic_lieux[lieu_actuel].heure_ouverture - temps_actuel.hour
             temps_actuel.replace(hour=dic_lieux[lieu_actuel].heure_ouverture)
 
         print("")
 
     print("Retour au dépôt")
+    temps_retour_depot = 0
     itinéraire = nx.astar_path(G, lieu_actuel, str(index_dépot))
+    nb_routes_empruntées += len(itinéraire)
+
     for i in range(len(itinéraire) - 1):
 
         tb_routes = dic_voisins[itinéraire[i]][itinéraire[i + 1]]
@@ -662,13 +683,16 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
 
         route = dic_routes[tb_routes[0]]
         temps_trajet = route.fctCalculerTempsTrajet(temps_actuel, _type_véhicule)
-        print("Route " + str(tb_routes[0]) + " : " + str(temps_trajet) + " minutes")
-        temps_trajet_itinéraire += temps_trajet
+        temps_retour_depot += temps_trajet
+        print("Route " + str(tb_routes[0]) + " : " + str(temps_retour_depot) + " minutes")
+        temps_trajet_total += temps_trajet
 
-        temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_trajet)
+        temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_retour_depot)
 
-    print("\nTemps de trajet de l'itinéraire " + str(temps_trajet_itinéraire) + " minutes")
+    print("\nTemps de trajet de l'itinéraire " + str(temps_trajet_total) + " minutes")
 
+    fctEnregistrementIntinéraireDB(len(G.nodes), len(tb_colis_a_livrer), nb_routes_empruntées, temps_attente,
+                                   temps_retour_depot, temps_trajet_total)
 
 
 fctGénérerTournée(tb_colis, TypeVéhicule.CAMION)
