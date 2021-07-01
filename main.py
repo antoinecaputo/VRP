@@ -251,6 +251,20 @@ def fctListeVoisins(_dic_lieux):
     return dic_voisins_lieu
 
 
+"""
+def my_weight(G, u, v, id_route="id_route"):
+
+    edges_data = G.get_edges_data(u,v)
+    if id_route not in edges_data:
+        print("pas d'info de route")
+        return
+    
+    global dic_routes
+    route = dic_routes[edges_data[id_route]]
+
+    return route.fctCalculerTempsTrajet()
+"""
+
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 """
@@ -448,6 +462,7 @@ def fctEnregistrementDB(_tb_lieux, _dic_routes, _tb_colis):
 
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 
 def fctGénérerGraph(_dic_voisins):
@@ -490,34 +505,6 @@ def fctGénérerGraph(_dic_voisins):
 
                 G.add_edge(nom_lieu, nom_lieu_voisin, id_route=id_route, length=route.longueur, color=edge_color)
 
-    """
-    for lieu in dic_lieux.values():
-
-        for voisin in dic_lieux.values():
-            if lieu is voisin:
-                continue
-
-            # comparer quels lieux ont le même ID de route
-            for id_route in lieu.tb_id_routes:
-                for id_route_voisin in voisin.tb_id_routes:
-                    if id_route != id_route_voisin:
-                        continue
-
-                    route = dic_routes[id_route]
-
-                    edge_color = ''
-                    if route.type_route is TypeRoute.DEPARTEMENTALE:
-                        edge_color = 'g'
-                    elif route.type_route is TypeRoute.COMMUNALE:
-                        edge_color = 'y'
-                    elif route.type_route is TypeRoute.NATIONALE:
-                        edge_color = 'm'
-                    elif route.type_route is TypeRoute.AUTOROUTE:
-                        edge_color = 'b'
-
-                    G.add_edge(lieu.nom_lieu, voisin.nom_lieu, color=edge_color)
-    """
-
     edges_color_map = nx.get_edge_attributes(G, 'color').values()
 
     if not nx.is_connected(G):
@@ -526,6 +513,14 @@ def fctGénérerGraph(_dic_voisins):
 
     nx.draw(G, node_color=nodes_color_map, edge_color=edges_color_map, cmap=plt.cm.Set1, node_size=100, font_size=10,
             with_labels=True)
+
+    autoroute_patch = mpatches.Patch(color='blue', label='Highway')
+    departementale_patch = mpatches.Patch(color='green', label='Departmental')
+    communale_patch = mpatches.Patch(color='yellow', label='Communal')
+    nationale_patch = mpatches.Patch(color='magenta', label='National')
+
+    plt.legend(handles=[autoroute_patch, departementale_patch, communale_patch, nationale_patch])
+
     # larger figure size
     plt.figure(3, figsize=(15, 15))
 
@@ -565,7 +560,7 @@ def fctGénérerGraph(_dic_voisins):
 dic_routes = {}
 tb_colis = []
 
-index_dépot, dic_lieux, dic_routes = fctGénérerPlan(500)
+index_dépot, dic_lieux, dic_routes = fctGénérerPlan(50)
 
 dic_voisins = fctListeVoisins(dic_lieux)
 
