@@ -638,10 +638,37 @@ def fctGénérerTournée(_tb_colis, _type_véhicule):
             temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_trajet)
 
         print("Heure d'arrivée : " + str(temps_actuel))
-        print("")
+
         lieu_actuel = destination
 
-    print("Temps de trajet de l'itinéraire " + str(temps_trajet_itinéraire) + " minutes")
+        if dic_lieux[lieu_actuel].heure_ouverture > temps_actuel.hour:
+            print("Attente avant ouverture")
+            temps_actuel.replace(hour=dic_lieux[lieu_actuel].heure_ouverture)
+
+        print("")
+
+    print("Retour au dépôt")
+    itinéraire = nx.astar_path(G, lieu_actuel, str(index_dépot))
+    for i in range(len(itinéraire) - 1):
+
+        tb_routes = dic_voisins[itinéraire[i]][itinéraire[i + 1]]
+
+        # exception
+        if tb_routes is None:
+            continue
+
+        if tb_routes[0] is None:
+            continue
+
+        route = dic_routes[tb_routes[0]]
+        temps_trajet = route.fctCalculerTempsTrajet(temps_actuel, _type_véhicule)
+        print("Route " + str(tb_routes[0]) + " : " + str(temps_trajet) + " minutes")
+        temps_trajet_itinéraire += temps_trajet
+
+        temps_actuel = temps_actuel + datetime.timedelta(minutes=temps_trajet)
+
+    print("\nTemps de trajet de l'itinéraire " + str(temps_trajet_itinéraire) + " minutes")
+
 
 
 fctGénérerTournée(tb_colis, TypeVéhicule.CAMION)
