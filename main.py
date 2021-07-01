@@ -1,4 +1,5 @@
 import math
+import sys
 
 import numpy
 import random
@@ -181,7 +182,6 @@ class Route:
                 # passer de matin à soir
                 if plage_horaire_actuelle == 'm' and heure >= 12:
                     plage_horaire_actuelle = 's'
-
 
                 date_info_trafic = datetime.datetime(2020, 1, jour_actuel + 1, heure, minutes)
 
@@ -450,7 +450,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-def fctGénérerGraph():
+def fctGénérerGraph(_dic_voisins):
     G = nx.Graph()
 
     # Ajout des noeuds au graphe
@@ -464,6 +464,33 @@ def fctGénérerGraph():
             nodes_color_map.append(1)
 
     # Ajout des arêtes au graphe
+    for nom_lieu, dic_lieux_voisins in _dic_voisins.items():
+
+        for nom_lieu_voisin, tb_routes in dic_lieux_voisins.items():
+
+            for id_route in tb_routes:
+
+                # print(str(nom_lieu) + " - " + str(nom_lieu_voisin) + " : " + str(id_route))
+                edge_data = G.edges.data("id_route")
+                if (nom_lieu, nom_lieu_voisin) in edge_data:
+                    if edge_data[nom_lieu, nom_lieu_voisin] is id_route:
+                        continue
+
+                route = dic_routes[id_route]
+
+                edge_color = ''
+                if route.type_route is TypeRoute.DEPARTEMENTALE:
+                    edge_color = 'g'
+                elif route.type_route is TypeRoute.COMMUNALE:
+                    edge_color = 'y'
+                elif route.type_route is TypeRoute.NATIONALE:
+                    edge_color = 'm'
+                elif route.type_route is TypeRoute.AUTOROUTE:
+                    edge_color = 'b'
+
+                G.add_edge(nom_lieu, nom_lieu_voisin, id_route=id_route, length=route.longueur, color=edge_color)
+
+    """
     for lieu in dic_lieux.values():
 
         for voisin in dic_lieux.values():
@@ -489,14 +516,13 @@ def fctGénérerGraph():
                         edge_color = 'b'
 
                     G.add_edge(lieu.nom_lieu, voisin.nom_lieu, color=edge_color)
+    """
 
     edges_color_map = nx.get_edge_attributes(G, 'color').values()
 
     if not nx.is_connected(G):
         print("not reachable nodes in graph")
-        import sys
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
+        sys.exit(-1)
 
     nx.draw(G, node_color=nodes_color_map, edge_color=edges_color_map, cmap=plt.cm.Set1, node_size=100, font_size=10,
             with_labels=True)
@@ -539,20 +565,27 @@ def fctGénérerGraph():
 dic_routes = {}
 tb_colis = []
 
-index_dépot, dic_lieux, dic_routes = fctGénérerPlan(15)
+index_dépot, dic_lieux, dic_routes = fctGénérerPlan(500)
+
+dic_voisins = fctListeVoisins(dic_lieux)
 
 tb_colis = fctGénérerColis(dic_lieux, 20)
 
 fctGénérerJSON()
 
-G = fctGénérerGraph()
+G = fctGénérerGraph(dic_voisins)
+
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-dic_voisins = fctListeVoisins(dic_lieux)
 
+def fctGénérerTournée(_tb_colis, _type_véhicule):
+    global index_dépot
+    global dic_lieux
+    global dic_voisins
+    global dic_routes
+    global G
 
-def fctGénérerTournée(_index_dépot, _tb_colis, _type_véhicule, _G, _dic_lieux, _dic_voisins, _dic_routes):
     tb_colis_a_livrer = []
 
     type_colis = None
@@ -563,25 +596,23 @@ def fctGénérerTournée(_index_dépot, _tb_colis, _type_véhicule, _G, _dic_lie
     elif _type_véhicule is TypeVéhicule.CAMION:
         type_colis = TypeColis.GROS_CARTON
 
-    # complexité linéaire
     for colis in _tb_colis:
         if colis.type_colis is type_colis:
             tb_colis_a_livrer.append(colis)
 
-    tb_colis_a_livrer.sort(key=lambda x: (_dic_lieux[x.lieu_livraison].heure_ouverture, [x.lieu_livraison]))
-    # tb_colis_a_livrer.sort(key=lambda x: [x.lieu_livraison])
+    tb_colis_a_livrer.sort(key=lambda x: (dic_lieux[x.lieu_livraison].heure_ouverture, [x.lieu_livraison]))
 
     print("\n")
     for colis in tb_colis_a_livrer:
         print(str(colis.type_colis) + " au lieu " + str(colis.lieu_livraison) + " à partir de " + str(
-            _dic_lieux[colis.lieu_livraison].heure_ouverture) + "h")
+            dic_lieux[colis.lieu_livraison].heure_ouverture) + "h")
 
     print("\n")
 
-    lieu_actuel = str(_index_dépot)
+    lieu_actuel = str(index_dépot)
 
     #                               année, mois, num_jours, heures, minutes
-    temps_actuel = datetime.datetime(2020, 1, 0 + 1, _dic_lieux[lieu_actuel].heure_ouverture, 0)
+    temps_actuel = datetime.datetime(2020, 1, 0 + 1, dic_lieux[lieu_actuel].heure_ouverture, 0)
 
     temps_trajet_itinéraire = 0
 
@@ -590,7 +621,7 @@ def fctGénérerTournée(_index_dépot, _tb_colis, _type_véhicule, _G, _dic_lie
         print("Départ " + lieu_actuel + " pour aller à " + destination)
         print("Heure de départ : " + str(temps_actuel))
 
-        itinéraire = nx.astar_path(_G, lieu_actuel, destination)
+        itinéraire = nx.astar_path(G, lieu_actuel, destination)
         print(itinéraire)
 
         for i in range(len(itinéraire) - 1):
@@ -618,7 +649,7 @@ def fctGénérerTournée(_index_dépot, _tb_colis, _type_véhicule, _G, _dic_lie
     print("Temps de trajet de l'itinéraire " + str(temps_trajet_itinéraire) + " minutes")
 
 
-fctGénérerTournée(index_dépot, tb_colis, TypeVéhicule.CAMION, G, dic_lieux, dic_voisins, dic_routes)
+fctGénérerTournée(tb_colis, TypeVéhicule.CAMION)
 
 # fctGénérerTournée(dic_lieux, index_dépot, tb_colis, TypeColis.LETTRE, dic_voisins)
 
